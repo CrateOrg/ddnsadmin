@@ -99,8 +99,10 @@ function add_record($args) {
 		$u->add($type_class::fromString($record['name'].' '.$record['ttl'].' IN '.$record['type'].' '.$record['data']));
 		$u->update();
 	} catch(Net_DNS2_Exception $e) {
-		output_error($e->getMessage());
+		return $e->getMessage();
 	}
+
+	return true;
 }
 
 function delete_record($args) {
@@ -130,8 +132,10 @@ function delete_record($args) {
 		$u->delete($type_class::fromString($record['name'].' 0 NONE '.$record['type'].' '.$record['data']));
 		$u->update();
 	} catch(Net_DNS2_Exception $e) {
-		output_error($e->getMessage());
+		return $e->getMessage();
 	}
+
+	return true;
 }
 
 function axfr($args) {
@@ -188,10 +192,37 @@ switch ($_SERVER['PATH_INFO']) {
 		axfr($args);
 		break;
 	case '/delete-record':
-		delete_record($args);
+		$ret = delete_record($args);
+		if($ret !== true){
+			output_error($ret);
+		}
 		break;
 	case '/add-record':
-		add_record($args);
+		$ret = add_record($args);
+		if($ret !== true){
+			output_error($ret);
+		}
+		break;
+
+	case '/update-record':
+		$original = $args['record']['original'];
+		$new = $args['record']['new'];
+		$args['record'] = $original;
+
+		// output_error(print_r($args));
+		$ret = delete_record($args);
+		if($ret !== true){
+			output_error($ret);
+		}
+
+		$args['record'] = $new;
+
+		$ret = add_record($args);
+		if($ret !== true){
+			$args['record'] = $original;
+			add_record($args);
+			output_error($ret);
+		}
 		break;
 	default:
 		output_error('Requested method is not available.', 501);
