@@ -141,6 +141,19 @@ $(function () {
 		$.each(document.getElementById('rr-add'), function(key, val) {
 			if (val.name) {
 				if (val.name == 'name') {
+					// if ends with dot, don't append zone
+					if(val.value.slice(-1) == "."){
+						record[val.name] = val.value;
+					}
+					else{
+						record[val.name] = val.value + (val.value.length == 0 ? '' : '.') + data.zone;
+					}
+				} else {
+					record[val.name] = val.value;
+				}
+			}
+		});
+
 					record[val.name] = val.value + (val.value.length == 0 ? '' : '.') + data.zone;
 				} else {
 					record[val.name] = val.value;
