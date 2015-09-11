@@ -24,6 +24,10 @@ function attach_button_action() {
 			record[$(this).attr('data-name')] = $(this).text();
 		});
 
+		if(!confirm("Are you sure you want to delete: " + record['type'] + " " + record['data'] + "?")){
+			return;
+		}
+
 		data['record'] = record;
 		$.post($('#proxy-path').val()+'/delete-record', JSON.stringify(data), reload_zone);
 	});
