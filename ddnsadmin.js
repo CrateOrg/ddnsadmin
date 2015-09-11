@@ -3,6 +3,31 @@ function show_error(str) {
 	$('#errors').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><strong>Error!</strong> ' + str + '</div>');
 }
 
+$(document).ready(function () {
+	$('#records').DataTable( {
+		"bSortCellsTop": true, // sorting in the first column
+		"drawCallback" : function(oSettings) {
+			var perPage = oSettings._iDisplayLength;
+			var total = oSettings.fnRecordsTotal();
+			var totalPages = Math.ceil(total / perPage);
+			var page = oSettings._iDisplayStart / perPage + 1;
+			var empty = perPage - (total % perPage) ;
+			var columns = $(this).find('tr').first().find('th').length;
+
+			if(page == totalPages){
+	      		for(i = 0; i < empty; i++){
+		        	$(this).append('<tr class="space"><td colspan="' + columns + '">&nbsp;</td></tr>');  
+		        }
+		    }
+			attach_button_action();
+ 		},
+		columnDefs: [ 
+		   { orderable: false, targets: -1 } // last column doesn't have sorting option
+		],
+		"lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]], // show n rows
+		"pageLength" : 10 // show 10 rows by default
+	});
+});
 
 function get_auth_data(form_element) {
 	var data = {};
@@ -60,7 +85,6 @@ function create_fqdn(domain, html) {
 }
 
 function get_subdomain(domain) {
-	console.log(domain);
 	var auth_data = get_auth_data(document.getElementById('auth_form'));
 	if (is_fqdn(domain)) {
 		return domain.slice(-1*(auth_data.zone.length + 2));
@@ -73,7 +97,7 @@ function get_subdomain(domain) {
 }
 
 function attach_button_action() {
-	$('#records [data-name="delete-button"] button').on('click', function (e) {
+	$('#records [data-name="delete-button"] button').off('click').on('click', function (e) {
 		var record = {};
 		e.preventDefault();
 		var data = get_auth_data(document.getElementById('auth_form'));
@@ -90,7 +114,7 @@ function attach_button_action() {
 		$.post($('#proxy-path').val()+'/delete-record', JSON.stringify(data), reload_zone);
 	});
 
-	$('#records [data-name="edit-button"] button').on('click', function (e) {
+	$('#records [data-name="edit-button"] button').off('click').on('click', function (e) {
 		$(this).closest('tr').find('[data-var="yes"]').each(function () {
 			var dataName = $(this).attr('data-name');
 
@@ -114,7 +138,7 @@ function attach_button_action() {
 
 	});	
 
-	$('#records [data-name="cancel-button"] button').on('click', function (e) {
+	$('#records [data-name="cancel-button"] button').off('click').on('click', function (e) {
 		$(this).closest('tr').find('[data-var="yes"]').each(function () {
 			var dataName = $(this).attr('data-name');
 
@@ -130,7 +154,7 @@ function attach_button_action() {
 		show_buttons($(this), 'view');
 	});
 
-	$('#records [data-name="save-button"] button').on('click', function (e) {
+	$('#records [data-name="save-button"] button').off('click').on('click', function (e) {
 		e.preventDefault();
 		var data = get_auth_data(document.getElementById('auth_form'));
         var record = {original: {}, new: {}};
@@ -159,12 +183,15 @@ function attach_button_action() {
 			}
         });
 	});
+
+	$('.btn-tooltip').tooltip();
 }
 
 function reload_zone() {
 	var auth_data = get_auth_data(document.getElementById('auth_form'));
 
-	$("#records > tbody > tr").remove();
+	var table = $("#records").DataTable();
+	table.clear();
 
 	$.post($('#proxy-path').val()+'/axfr', JSON.stringify(auth_data), function (data) {
 		var body;
@@ -183,7 +210,6 @@ function reload_zone() {
 			if ($.inArray(val['type'], rr_filter) != -1)
 				return;
 
-			r[i++] = '<tr>';
 			$.each(val, function (rkey, rval) {
 				if (rkey == 'name') {
 					rval = get_subdomain(rval);
@@ -198,14 +224,12 @@ function reload_zone() {
 			r[i++] = '<div data-name="edit-button" data-name="buttons" style="display: inline"><button data-original-title="Edit record" type="button" class="btn btn-info btn-xs btn-tooltip"><span class="glyphicon glyphicon-edit"></span></button></div>';
 			r[i++] = '<div data-name="delete-button" data-name="buttons" style="display: inline"><button data-original-title="Delete record" type="button" class="btn btn-danger btn-xs btn-tooltip"><span class="glyphicon glyphicon-minus"></span></button></div>';
 			r[i++] = '</td>';
-			r[i++] = '</tr>';
-			body.append(r.join(''));
-
-			$('.btn-tooltip').tooltip();
+			
+			var row = $('<tr>').append(r.join(''));
+			table.row.add(row);
 		
 		});
-		attach_button_action();
-		
+		table.draw();
 	});
 
 }
