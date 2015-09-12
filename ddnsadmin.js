@@ -25,15 +25,15 @@ $(document).ready(function () {
 		   { orderable: false, targets: -1 } // last column doesn't have sorting option
 		],
 		"lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]], // show n rows
-		"pageLength" : 10 // show 10 rows by default
+		"pageLength" : 5 // show 10 rows by default
 	});
 
-	  $("#settings").on("hide.bs.collapse", function(){
-	    $("#btn-settings").html('<span class="glyphicon glyphicon-collapse-down"></span> Show settings');
-	  });
-	  $("#settings").on("show.bs.collapse", function(){
-	    $("#btn-settings").html('<span class="glyphicon glyphicon-collapse-up"></span> Hide settings');
-	  });
+	$("#settings").on("hide.bs.collapse", function(){
+	  $("#btn-settings").html('<span class="glyphicon glyphicon-collapse-down"></span> Show settings');
+	});
+	$("#settings").on("show.bs.collapse", function(){
+	  $("#btn-settings").html('<span class="glyphicon glyphicon-collapse-up"></span> Hide settings');
+	});
 });
 
 function get_auth_data(form_element) {
