@@ -27,6 +27,13 @@ $(document).ready(function () {
 		"lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]], // show n rows
 		"pageLength" : 10 // show 10 rows by default
 	});
+
+	  $("#settings").on("hide.bs.collapse", function(){
+	    $("#btn-settings").html('<span class="glyphicon glyphicon-collapse-down"></span> Show settings');
+	  });
+	  $("#settings").on("show.bs.collapse", function(){
+	    $("#btn-settings").html('<span class="glyphicon glyphicon-collapse-up"></span> Hide settings');
+	  });
 });
 
 function get_auth_data(form_element) {
@@ -94,6 +101,10 @@ function get_subdomain(domain) {
 	}
 
 	return domain;
+}
+
+function hide_errors() {
+	$("#errors").empty();
 }
 
 function attach_button_action() {
@@ -193,45 +204,50 @@ function reload_zone() {
 	var table = $("#records").DataTable();
 	table.clear();
 
-	$.post($('#proxy-path').val()+'/axfr', JSON.stringify(auth_data), function (data) {
-		var body;
-		var rr_filter = $('#rr-filter').val().split(',');
+	$.ajax({
+		type: 'POST',
+		url: $('#proxy-path').val()+'/axfr', 
+		data: JSON.stringify(auth_data),
+		success: function (data) {
+					var body;
+					var rr_filter = $('#rr-filter').val().split(',');
 
-		if (data.error) {
-			show_error(data.message);
-			return;
-		}
+					if (data.error) {
+						show_error(data.message);
+						return;
+					}
 
-		body = $('#records > tbody');
-		$.each(data.records, function (key, val) {
-			var r = new Array();
-			var i = 0;
-			
-			if ($.inArray(val['type'], rr_filter) != -1)
-				return;
+					body = $('#records > tbody');
+					$.each(data.records, function (key, val) {
+						var r = new Array();
+						var i = 0;
+						
+						if ($.inArray(val['type'], rr_filter) != -1)
+							return;
 
-			$.each(val, function (rkey, rval) {
-				if (rkey == 'name') {
-					rval = get_subdomain(rval);
-					r[i++] = '<td data-name="record-' + rkey + '" data-var="yes" data-original="' + rval + '">' + create_fqdn(rval, true) + '</td>';
-				} else {
-					r[i++] = '<td data-name="record-' + rkey + '" data-var="yes" data-original="' + rval + '">' + rval + '</td>';
-				}
-			});
-			r[i++] = '<td class="col-control">';
-			r[i++] = '<div data-name="save-button" data-name="buttons" style="display: inline"><button data-original-title="Save changes" type="button" class="btn btn-success btn-xs btn-tooltip" style="display: none"><span class="glyphicon glyphicon-ok"></span></button></div>';
-			r[i++] = '<div data-name="cancel-button" data-name="buttons" style="display: inline"><button data-original-title="Cancel changes" type="button" class="btn btn-danger btn-xs btn-tooltip" style="display: none"><span class="glyphicon glyphicon-remove"></span></button></div>';
-			r[i++] = '<div data-name="edit-button" data-name="buttons" style="display: inline"><button data-original-title="Edit record" type="button" class="btn btn-info btn-xs btn-tooltip"><span class="glyphicon glyphicon-edit"></span></button></div>';
-			r[i++] = '<div data-name="delete-button" data-name="buttons" style="display: inline"><button data-original-title="Delete record" type="button" class="btn btn-danger btn-xs btn-tooltip"><span class="glyphicon glyphicon-minus"></span></button></div>';
-			r[i++] = '</td>';
-			
-			var row = $('<tr>').append(r.join(''));
-			table.row.add(row);
-		
-		});
-		table.draw();
+						$.each(val, function (rkey, rval) {
+							if (rkey == 'name') {
+								rval = get_subdomain(rval);
+								r[i++] = '<td data-name="record-' + rkey + '" data-var="yes" data-original="' + rval + '">' + create_fqdn(rval, true) + '</td>';
+							} else {
+								r[i++] = '<td data-name="record-' + rkey + '" data-var="yes" data-original="' + rval + '">' + rval + '</td>';
+							}
+						});
+						r[i++] = '<td class="col-control">';
+						r[i++] = '<div data-name="save-button" data-name="buttons" style="display: inline"><button data-original-title="Save changes" type="button" class="btn btn-success btn-xs btn-tooltip" style="display: none"><span class="glyphicon glyphicon-ok"></span></button></div>';
+						r[i++] = '<div data-name="cancel-button" data-name="buttons" style="display: inline"><button data-original-title="Cancel changes" type="button" class="btn btn-danger btn-xs btn-tooltip" style="display: none"><span class="glyphicon glyphicon-remove"></span></button></div>';
+						r[i++] = '<div data-name="edit-button" data-name="buttons" style="display: inline"><button data-original-title="Edit record" type="button" class="btn btn-info btn-xs btn-tooltip"><span class="glyphicon glyphicon-edit"></span></button></div>';
+						r[i++] = '<div data-name="delete-button" data-name="buttons" style="display: inline"><button data-original-title="Delete record" type="button" class="btn btn-danger btn-xs btn-tooltip"><span class="glyphicon glyphicon-minus"></span></button></div>';
+						r[i++] = '</td>';
+						
+						var row = $('<tr>').append(r.join(''));
+						table.row.add(row);
+					
+					});
+					table.draw();
+				},
+		async: false
 	});
-
 }
 
 function connect_to_proxy() {
@@ -289,7 +305,11 @@ $(function () {
 
 	$('#auth_form').on('submit', function (e) {
 		e.preventDefault();
+		hide_errors();
 		reload_zone();
+		if($("#errors").is(':empty')){
+			$("#settings").collapse("hide");
+		}
 	});
 
 	$('#records [data-name="add-button"] button').on('click', function (e) {
