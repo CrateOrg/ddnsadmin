@@ -139,7 +139,7 @@ function attach_button_action() {
 				$(this).closest('tr').find('select').val(selectedType);
 			}
 			else {
-				$(this).html('<input type="text" name="' + dataName + '" class="form-control" value="' + $(this).attr('data-original') + '">');
+				$(this).html('<input type="text" name="' + dataName + '" class="form-control" value="' + $(this).attr('data-original').replace(/"/g, '&quot;') + '">');
 			}
 
 		});
@@ -157,7 +157,7 @@ function attach_button_action() {
 				$(this).html(create_fqdn($(this).attr('data-original'), true));
 			}
 			else{
-				$(this).html($(this).attr('data-original'));
+				$(this).html($(this).attr('data-original')).replace(/&quot;/g, '"');
 			}
 
 		});
@@ -178,7 +178,7 @@ function attach_button_action() {
 				record['original'][name] = create_fqdn($(this).attr('data-original'));
 				record['new'][name] = create_fqdn(value);
 			} else {
-				record['original'][name] = $(this).attr('data-original');
+				record['original'][name] = $(this).attr('data-original').replace(/&quot;/g, '"');
 				record['new'][name] = value;
 			}
 		});
@@ -229,6 +229,8 @@ function reload_zone() {
 							if (rkey == 'name') {
 								rval = get_subdomain(rval);
 								r[i++] = '<td data-name="record-' + rkey + '" data-var="yes" data-original="' + rval + '">' + create_fqdn(rval, true) + '</td>';
+                            } else if (rkey == "data") {
+                                r[i++] = '<td data-name="record-' + rkey + '" data-var="yes" data-original="' + rval.replace(/"/g, '&quot;') + '">' + rval + '</td>';
 							} else {
 								r[i++] = '<td data-name="record-' + rkey + '" data-var="yes" data-original="' + rval + '">' + rval + '</td>';
 							}
