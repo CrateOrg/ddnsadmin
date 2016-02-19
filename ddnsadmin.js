@@ -157,7 +157,7 @@ function attach_button_action() {
 				$(this).html(create_fqdn($(this).attr('data-original'), true));
 			}
 			else{
-				$(this).html($(this).attr('data-original')).replace(/&quot;/g, '"');
+				$(this).html($(this).attr('data-original').replace(/&quot;/g, '"'));
 			}
 
 		});
