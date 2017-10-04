@@ -1,16 +1,8 @@
 <?php
 
 // Load Net/DNS2 library
-if (file_exists('Net.phar')) {
-	require_once 'phar://Net.phar/DNS2.php';
-
-	spl_autoload_unregister('Net_DNS2::autoload');
-	spl_autoload_register(function ($name) {
-		if (strncmp($name, 'Net_DNS2', 8) == 0)
-			require 'phar://Net.phar'.str_replace('_', '/', substr($name, 3)) . '.php';
-	});
-} elseif (file_exists('Net/DNS2.php')) {
-	require_once 'Net/DNS2.php';
+if (file_exists('composer.json')) {
+  require_once 'vendor/autoload.php';
 } else {
 	output_error('Net_DNS2 PHP library is missing.');
 }
