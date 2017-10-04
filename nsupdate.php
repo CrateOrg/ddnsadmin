@@ -2,22 +2,37 @@
   // *** PHP script to automate nsupdate calls for dynamic dns updates.
   // *** This script and a properly configured bind nameserver allows hosting
   // *** of custom dyndns services, e.g. updating own domain from Fritzbox.
-  // *** usage: http://192.168.0.25/nsupdate.php?ns=ns0.mynameserver.de&domain=my.domain.de;my.domain2.de&newip=<ipaddr>  
+  // *** usage: http://192.168.0.25/nsupdate.php?ns=ns0.mynameserver.de&domain=my.domain.de&newip=<ipaddr>
+  // Taken (and modified) from https://gist.github.com/mark-sch/9109343
 
-  if (!isset($_SERVER['PHP_AUTH_USER']))
-  {
-        Header("WWW-Authenticate: Basic realm=\"Configurations-Editor\"");
-        Header("HTTP/1.0 401 Unauthorized");
-        echo "Sie m&uuml;ssen sich autentifizieren\n";
-        exit;
+  // open log session
+  openlog("webnsupdater", LOG_PID | LOG_PERROR, LOG_LOCAL0);
+
+  function output_error($error_string, $status_code = 500) {
+    http_response_code($status_code);
+    die($error_string);
   }
 
+  function base64_url_encode($input) {
+    return strtr(base64_encode($input), '+/=', '._-');
+  }
 
-  // configuration of user and domain
-  // Caution: This script validates only given usernames from basic auth and no pw right now.
-  $user_domain = array( 'user123' => array('my.domain.de', 'my.domain2.de', 'my.domain.de;my.domain2.de'));
+  function base64_url_decode($input) {
+    return base64_decode(strtr($input, '._-', '+/='));
+  }
 
-  // short sanity check for given IP
+  // Load Net/DNS2 library
+  if (file_exists('composer.json')) {
+    require_once 'vendor/autoload.php';
+  } else {
+    syslog(LOG_WARN, 'Net_DNS2 PHP library is missing.');
+    output_error("Net_DNS2 PHP library is missing.\n");
+  }
+
+  // configuration: domains which can be updated, nameservers must be a subdomain of any of those but cross-updates are allowed
+  $legitimate_domains = array('example.net', 'example.org');
+
+  // helper function: short sanity check for given IP
   function checkip($ip)
   {
     $iptupel = explode(".", $ip);
@@ -29,150 +44,60 @@
     return true;
   }
 
-  function nsupdate($dyndns, $subdomain, $ip) {
-     // prepare command
-     $data = "<<EOF
-     server $dyndns
-     update delete $subdomain A
-     update add $subdomain 10 A $ip
-     send
-     EOF";
-     // run DNS update
-     exec("/usr/bin/nsupdate -k /etc/named/K$subdomain*.private $data", $cmdout, $ret);
-     return $ret;
-  }
-
-  // retrieve remote IP
-  $remoteip = $_SERVER['REMOTE_ADDR'];
-  // retrieve user
-  if ( isset($_SERVER['REMOTE_USER']) )
+  // helper function: get a parameter from POST first and then GET
+  // $param = name of parameter
+  function getparam($param)
   {
-    $user = $_SERVER['REMOTE_USER'];
-  }
-  else if ( isset($_SERVER['PHP_AUTH_USER']) )
-  {
-    $user = $_SERVER['PHP_AUTH_USER'];
-  }
-  else
-  {
-    syslog(LOG_WARN, "No user given by connection from $remoteip");
-    echo "No user given by connection from $remoteip\n";
-    exit(0);
-  }
-
-  // open log session
-  openlog("DDNS-Provider", LOG_PID | LOG_PERROR, LOG_LOCAL0);
-  
-  // check for given nameserver
-  if ( isset($_POST['ns']) )
-  {
-    $dyndns = $_POST['ns'];
-  }
-  else if ( isset($_GET['ns']) )
-  {
-    $dyndns = $_GET['ns'];
-  }
-  else
-  {
-    syslog(LOG_WARN, "User $user didn't provide any dyndns server");
-    echo "Error! No dyndns server given.\n";
-    exit(0);
-  }
-
-  // check for given domain
-  if ( isset($_POST['domain']) )
-  {
-    $subdomain = $_POST['domain'];
-  }
-  else if ( isset($_GET['domain']) )
-  {
-    $subdomain = $_GET['domain'];
-  }
-  else
-  {
-    syslog(LOG_WARN, "User $user didn't provide any domain");
-    echo "Error! No domain name given.\n";
-    exit(0);
-  }
-
-  // check for given newip
-  if ( isset($_POST['newip']) )
-  {
-    $ip = $_POST['newip'];
-  }
-  else if ( isset($_GET['newip']) )
-  {
-    $ip = $_GET['newip'];
-  }
-  else
-  {
-    syslog(LOG_WARN, "User $user didn't provide any newip");
-    echo "Error! No newip given.\”";
-    exit(0);
-  }
-
-  // check for needed variables
-  if ( isset($subdomain) && isset($ip) && isset($user) )
-  {
-    // short sanity check for given IP
-    if ( preg_match("/^(\d{1,3}\.){3}\d{1,3}$/", $ip) && checkip($ip) && $ip != "0.0.0.0" && $ip != "255.255.255.255" )
+      $paramvalue = "";
+    if ( isset($_POST[$param]) )
     {
-      // short sanity check for given domain
-      if ( preg_match("/^[\w\d;-_\*\.]+$/", $subdomain) )
-      {
-        // check whether user is allowed to change domain
-        if ( in_array("*", $user_domain[$user]) or in_array($subdomain, $user_domain[$user]) )
-        {
-          if ( $subdomain != "-" )
-            $subdomain = $subdomain . '.';
-          else
-            $subdomain = '';
-
-          // shell escape all values
-          $subdomain = escapeshellcmd($subdomain);
-          $user = escapeshellcmd($user);
-          $ip = escapeshellcmd($ip);
-
-          $arrsubdomain = explode("\;", $subdomain);
-         
-          foreach ($arrsubdomain as $value) { 
-             // run DNS update
-             $subdomain = $value;
-             $ret = nsupdate($dyndns, $subdomain, $ip);
-             // check whether DNS update was successful
-             if ($ret != 0)
-             {
-               syslog(LOG_INFO, "Changing DNS for $subdomain to $ip failed with code $ret");
-               echo "Changing $dyndns DNS for $subdomain to $ip failed with code $ret\n";
-             }
-             else {
-               syslog(LOG_INFO, "Domain $subdomain was successfully updated to $ip. From $user with remote ip $remoteip on nameserver $dyndns");
-    echo "Domain $subdomain was successfully updated to $ip. From $user with remote ip $remoteip on nameserver $dyndns\n<br/>";
-             }
-          }
-        }
-        else
-        {
-          syslog(LOG_INFO, "Domain $subdomain is not allowed for $user from remote $remoteip");
-          echo "Domain $subdomain is not allowed for $user from remote $remoteip\n";
-        }
-      }
-      else
-      {
-        syslog(LOG_INFO, "Domain $subdomain for $user from remote ip $ip with $subdomain was wrong with $ip");
-        echo "Domain $subdomain for $user from remote ip $ip with $subdomain was wrong with $ip\n";
-      }
+      $paramvalue = $_POST[$param];
+    }
+    else if ( isset($_GET[$param]) )
+    {
+      $paramvalue = $_GET[$param];
     }
     else
     {
-      syslog(LOG_INFO, "IP $ip for $user from remote $remoteip with $subdomain was wrong");
-      echo "IP $ip for $user from remote $remoteip with $subdomain was wrong\n";
+      syslog(LOG_WARN, "Parameter $param not provided in POST nor GET");
     }
+    return $paramvalue;
   }
-  else
-  {
-    syslog(LOG_INFO, "DDNS change for $user from remote ip $remoteip with $ip and $subdomain failed because of missing values");
-    echo "DDNS change for $user from remote ip $remoteip with $ip and $subdomain failed because of missing values\n";
+
+  // Process request
+  foreach (array("zone", "key-name", "key-type", "key", "server") as $val) {
+	$args[$val] = getparam($val);
+	if (empty($args[$val]))
+		output_error('Invalid request, "'.$val.'" field is mandatory.', 400);
+  }
+  $args["key"] = base64_url_decode($args["key"]);
+
+  $record = $args['record'];
+  foreach (array("name", "ttl", "type", "data") as $val) {
+	syslog(LOG_WARN, "getparam($val) = ".getparam($val));
+	$record[$val] = getparam($val);
+	if (empty($record[$val]))
+		output_error('Invalid request, "'.$val.'" field is mandatory.', 400);
+  }
+
+  $type_name = $record['type'];
+  if (empty(Net_DNS2_Lookups::$rr_types_by_name[$type_name]))
+	output_error('Resource record type "'.$type_name.'" is not supported.');
+
+  $type_id = Net_DNS2_Lookups::$rr_types_by_name[$type_name];
+  if (empty(Net_DNS2_Lookups::$rr_types_id_to_class[$type_id]))
+	output_error('Resource record type "'.$type_name.'" is not supported.');
+
+  $type_class = Net_DNS2_Lookups::$rr_types_id_to_class[$type_id];
+  $u = new Net_DNS2_Updater($args['zone'], array('nameservers' => array($args['server'])));
+
+  try {
+	$u->signTSIG($args['key-name'], $args['key'], $args['key-type']);
+	$u->add($type_class::fromString($record['name'].' '.$record['ttl'].' IN '.$record['type'].' '.$record['data']));
+	$u->update();
+  } catch(Net_DNS2_Exception $e) {
+	output_error("Update failed: ".$e->getMessage());
+	syslog(LOG_WARN, "Update failed: ".$e->getMessage());
   }
 
   // close log session
