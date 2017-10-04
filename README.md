@@ -61,15 +61,22 @@ out before displaying zone records.
 System architecture
 -------------------
 
-Frontend files:
+User frontend files:
 
 * index.html
 * ddnsadmin.js
+* node_modules
+
+Router/Endpoint fronted file:
+
+* nsupdate.php
 
 Backend files:
 
 * dnsproxy.php
-* Net.phar (file) or Net (directory) for Net\_DNS2 library
+* composer.json
+* composer.lock
+* vendor
 
 ```
 +--------------+         +--------------+      +------------+
@@ -89,32 +96,15 @@ Backend files:
 
 In each request frontend passes your zone key to the backend. It is important 
 to use HTTPS or start backend on your local machine using PHP built-in web 
-server to avoid eavesdropping.
+server to avoid eavesdropping. But you must yet trust your website hoster.
 
 
 Net\_DNS2
 ---------
 
 Backend uses [Net\_DNS2 library](http://pear.php.net/package/Net\_DNS2) for DNS 
-packet crafting. This repository includes **Net.phar** archive of Net\_DNS2 
-library files.
-
-Backend checks for *Net.phar* archive or *Net* directory for library sources.
-
-If you do not trust bundled *Net.phar* archive you can easily download library 
-code from upstream and use sources directly or pack your own *Net.phar* archive.
-
-There is Makefile with library download and packing code. To delete provided 
-*Net.phar* archive and download library sources following commands:
-
-	make clean      # Remove Net.phar and library sources
-	make Net        # Download and extract library sources
-
-To build your own *Net.phar* use commands:
-
-	make            # Create Net.phar
-	make distclean  # Delete library sources
-
+packet crafting. This repository uses composer to manage Net\_DNS2 library
+files.
 
 DNS server configuration examples
 =================================
@@ -235,3 +225,7 @@ performed successfully.
 
 In both examples replace *127.0.0.1* with your name server IP address.
 
+Router/Endpoint Frontend
+------------------------
+
+http://127.0.0.1:8080/nsupdate.php?zone=example.net&key-name=host.example.net&key-type=hmac-sha512&key=<base64-encoded-key>--&server=5.189.123.456&name=host.example.net&ttl=60&type=A
