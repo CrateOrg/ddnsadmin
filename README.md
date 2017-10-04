@@ -5,6 +5,9 @@ This is a web interface for DNS zone management using TSIG keys (RFC2845). To
 use it you must have a valid TSIG key and configure your DNS zone master 
 name server to allow AXFR and DDNS requests signed by your key.
 
+In addition to the web frontend for human users there is a HTTP(S) based "API"
+for routers.
+
 DNS management interface is split in two parts - frontend written in JavaScript 
 and backend written in PHP.
 
@@ -21,6 +24,9 @@ built-in web server. Start it from this project directory, with:
 	php -S 127.0.0.1:8080
 
 And point your browser to http://127.0.0.1:8080/.
+
+Security remark: While this project does not cache any sensitive data by itself
+remind yourself that any sensitive data might be recorded by your website hoster.
 
 
 Frontend settings
