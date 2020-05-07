@@ -34,11 +34,19 @@
 
 <body>
 <div class="container">
-	<h1>DDNSadmin</h1>
-
-	<button id="btn-settings" type="button" class="btn btn-info" data-toggle="collapse" data-target="#settings">
-		<span class="glyphicon glyphicon-collapse-up"></span> Hide settings
-	</button>
+  <nav class="navbar navbar-inverse" data-spy="affix" data-offset-top="250">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="/">DDNS Admin
+        </a>
+      </div>
+      <ul class="nav navbar-nav pull-right">
+        <button id="btn-settings" type="button" class="btn btn-default navbar-btn" data-toggle="collapse" data-target="#settings">
+          <span class="glyphicon glyphicon-collapse-up"></span> Hide settings
+        </button>
+      </ul>
+    </div>
+  </nav>
 
 	<div id="settings" class="collapse in">
 	 	<div class="row">
