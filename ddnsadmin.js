@@ -336,11 +336,13 @@ $(function () {
 
 		data['record'] = record;
 		$.post($('#proxy-path').val()+'/add-record', JSON.stringify(data), function (data) {
-			if (data.error) {
-            	show_error(data.message);
-            } else {
-				reload_zone();
-			}
-        });
+		  if (data.error) {
+                    show_error(data.message);
+                  } else {
+                     // Clear input fields on success
+                     $("#rr-add").find("input[type=text], textarea").val("")
+                     reload_zone();
+		  }
+                });
 	});
 });
