@@ -1,5 +1,8 @@
 {
     "require": {
-        "pear/net_dns2": "^1.4"
+        "pear/net_dns2": "1.4.*",
+        "datatables/datatables": "1.10.*",
+        "components/jquery": "3.4.*",
+        "twbs/bootstrap": "3.4.*"
     }
 }
