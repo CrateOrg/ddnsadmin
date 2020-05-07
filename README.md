@@ -15,8 +15,33 @@ Backend is completely stateless and is used only to convert HTTP requests to DNS
 queries. Single backend can be safely used by multiple users managing different 
 DNS zones.
 
-To try it out, drop *index.html*, *ddnsadmin.js*, *dnsproxy.php* and *Net.phar* 
-to your PHP enabled web server and navigate your browser to *index.html*.
+
+Installation
+------------
+
+* Install a web server and php stack on your machine, for example
+
+  `apt install -y lamp-server^`
+
+* Install Git
+
+  `apt install -y git`
+
+* Clone repository
+
+  `git clone <REPO_URL>`
+
+* Install composer
+
+  `curl -sS https://getcomposer.org/installer -o composer-setup.php`
+  
+  `php composer-setup.php; rm composer-setup.php`
+  
+  `sudo cp composer.phar /usr/local/bin/composer`
+
+* Install dependencies
+
+  `cd ddnsadmin; composer install`
 
 To try it out on local machine without a full blown web server you can use PHP 
 built-in web server. Start it from this project directory, with:
