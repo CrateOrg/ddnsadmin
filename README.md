@@ -29,7 +29,7 @@ Installation
 
 * Clone repository
 
-  `git clone <REPO_URL>`
+  `git clone <REPO_URL> /var/www/html`
 
 * Install composer
 
@@ -37,18 +37,19 @@ Installation
   
   `php composer-setup.php; rm composer-setup.php`
   
-  `sudo cp composer.phar /usr/local/bin/composer`
+  `mv composer.phar /usr/local/bin/composer`
 
 * Install dependencies
 
-  `cd ddnsadmin; composer install`
+  `cd /var/www/html; composer install`
 
-To try it out on local machine without a full blown web server you can use PHP 
-built-in web server. Start it from this project directory, with:
+To try it out on local machine without a full blown web server you can use PHP built-in web server. Start it from this project directory, with:
 
-	php -S 127.0.0.1:8080
+`php -S 127.0.0.1:8080`
 
 And point your browser to http://127.0.0.1:8080/.
+
+Security remark: While this project does not cache any sensitive data by itself remind yourself that any sensitive data might be recorded by your website hoster.
 
 Security remark: While this project does not cache any sensitive data by itself
 remind yourself that any sensitive data might be recorded by your website hoster.

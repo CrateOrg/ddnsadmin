@@ -1,0 +1,14 @@
+.table tbody > tr > td {
+  max-width: 400px;
+  overflow: hidden;
+  /*word-wrap: break-word;*/
+  text-overflow: "... (truncated)";
+  vertical-align: middle;
+  height: 52px;
+  white-space: nowrap;
+}
+
+.col-control {
+  width: 150px;
+  text-align: right;
+}

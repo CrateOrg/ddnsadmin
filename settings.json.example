@@ -1,0 +1,8 @@
+{
+  "zones": [
+    { "zone":"mydomain1.se", "rev-zone":"3.2.1.in-addr.arpa.", "key-name":"mydomain1_key.", "key-type":"hmac-sha512", "key":"mySecretKey1", "server":"8.8.8.8", "proxy-path":"dnsproxy.php", "rr-filter":"SOA,RRSIG,NSEC,NSEC3" },
+    { "zone":"mydomain2.com", "rev-zone":"6.5.4.in-addr.arpa.", "key-name":"mydomain2_key.", "key-type":"hmac-sha512", "key":"mySecretKey2", "server":"8.8.8.8", "proxy-path":"dnsproxy.php", "rr-filter":"SOA,RRSIG,NSEC,NSEC3" },
+    { "zone":"otherdomain.local", "rev-zone":"168.192.in-addr.arpa.", "key-name":"local_key.", "key-type":"hmac-sha512", "key":"mySecretKey3", "server":"192.168.1.1", "proxy-path":"dnsproxy.php", "rr-filter":"SOA,RRSIG,NSEC,NSEC3" }
+  ]
+}
+
