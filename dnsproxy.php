@@ -44,18 +44,18 @@ function supported_rr_types() {
 }
 
 function zone_to_server($args) {
-	foreach (array("zone") as $val)
+	foreach (array("current-zone") as $val)
 		if (empty($args[$val]))
 			output_error('Invalid request, "'.$val.'" field is mandatory.', 400);
 
 
 	$r = new Net_DNS2_Resolver();
-	$data = resolve($r, $args['zone'], 'NS');
+	$data = resolve($r, $args['current-zone'], 'NS');
 
 	$ns_list = array_map(function ($r) {return $r->nsdname;}, $data->answer);
 
 	if (empty($ns_list))
-		output_error('No NS records for zone "'.$args['zone'].'"');
+		output_error('No NS records for zone "'.$args['current-zone'].'"');
 
 	sort($ns_list);
 	$data = resolve($r, $ns_list[0], "A");
@@ -65,7 +65,7 @@ function zone_to_server($args) {
 }
 
 function add_record($args) {
-	foreach (array("zone", "key-name", "key-type", "key", "server", "record") as $val)
+	foreach (array("current-zone", "key-name", "key-type", "key", "server", "record") as $val)
 		if (empty($args[$val]))
 			output_error('Invalid request, "'.$val.'" field is mandatory.', 400);
 
@@ -85,7 +85,7 @@ function add_record($args) {
 	
 	$type_class = Net_DNS2_Lookups::$rr_types_id_to_class[$type_id];
 
-	$u = new Net_DNS2_Updater($args['zone'], array('nameservers' => array($args['server'])));
+	$u = new Net_DNS2_Updater($args['current-zone'], array('nameservers' => array($args['server'])));
 	try {
 		$u->signTSIG($args['key-name'], $args['key'], $args['key-type']);
 		$u->add($type_class::fromString($record['name'].' '.$record['ttl'].' IN '.$record['type'].' '.$record['data']));
@@ -98,7 +98,7 @@ function add_record($args) {
 }
 
 function delete_record($args) {
-	foreach (array("zone", "key-name", "key-type", "key", "server", "record") as $val)
+	foreach (array("current-zone", "key-name", "key-type", "key", "server", "record") as $val)
 		if (empty($args[$val]))
 			output_error('Invalid request, "'.$val.'" field is mandatory', 400);
 
@@ -118,7 +118,7 @@ function delete_record($args) {
 	
 	$type_class = Net_DNS2_Lookups::$rr_types_id_to_class[$type_id];
 
-	$u = new Net_DNS2_Updater($args['zone'], array('nameservers' => array($args['server'])));
+	$u = new Net_DNS2_Updater($args['current-zone'], array('nameservers' => array($args['server'])));
 	try {
 		$u->signTSIG($args['key-name'], $args['key'], $args['key-type']);
 		$u->delete($type_class::fromString($record['name'].' 0 NONE '.$record['type'].' '.$record['data']));
@@ -131,14 +131,14 @@ function delete_record($args) {
 }
 
 function axfr($args) {
-	foreach (array("zone", "key-name", "key-type", "key", "server") as $val)
+	foreach (array("current-zone", "key-name", "key-type", "key", "server") as $val)
 		if (empty($args[$val]))
 			output_error('Invalid request, "'.$val.'" field is mandatory', 400);
 
 	$r = new Net_DNS2_Resolver(array('nameservers' => array($args['server'])));
 	$r->signTSIG($args['key-name'], $args['key'], $args['key-type']);
 
-	$data = resolve($r, $args['zone'], 'AXFR');
+	$data = resolve($r, $args['current-zone'], 'AXFR');
 	
 	$records = array_map(function ($r) {
 		return array(

@@ -89,13 +89,19 @@ function create_fqdn(domain, html) {
     if (html) {
       if (domain.length == 0) {
         fqdn =
-          domain + '<span class="text-muted">' + auth_data.zone + ".</span>";
+          domain +
+          '<span class="text-muted">' +
+          auth_data["current-zone"] +
+          ".</span>";
       } else {
         fqdn =
-          domain + '<span class="text-muted">.' + auth_data.zone + ".</span>";
+          domain +
+          '<span class="text-muted">.' +
+          auth_data["current-zone"] +
+          ".</span>";
       }
     } else {
-      fqdn = domain + "." + auth_data.zone + ".";
+      fqdn = domain + "." + auth_data["current-zone"] + ".";
     }
 
     return fqdn;
@@ -104,12 +110,18 @@ function create_fqdn(domain, html) {
 
 function get_subdomain(domain) {
   var auth_data = get_auth_data(document.getElementById("auth_form"));
-  if (is_fqdn(domain)) {
-    return domain.slice(-1 * (auth_data.zone.length + 2));
-  } else if (domain.slice(-1 * auth_data.zone.length) == auth_data.zone) {
-    return domain.replace(domain.slice(-1 * (auth_data.zone.length + 1)), "");
-  }
 
+  if (is_fqdn(domain)) {
+    return domain.slice(-1 * (auth_data["current-zone"].length + 2));
+  } else if (
+    domain.slice(-1 * auth_data["current-zone"].length) ==
+    auth_data["current-zone"]
+  ) {
+    return domain.replace(
+      domain.slice(-1 * (auth_data["current-zone"].length + 1)),
+      ""
+    );
+  }
   return domain;
 }
 
@@ -263,18 +275,21 @@ function attach_button_action() {
 
 function load_reverse_zone() {
   var auth_data = get_auth_data(document.getElementById("auth_form"));
-  auth_data.zone = auth_data["rev-zone"];
-  update_table(auth_data);
+  update_table(auth_data, auth_data["rev-zone"]);
 }
 
 function reload_zone() {
   var auth_data = get_auth_data(document.getElementById("auth_form"));
-  update_table(auth_data);
+  update_table(auth_data, auth_data["zone"]);
 }
 
-function update_table(auth_data) {
+function update_table(auth_data, current_zone) {
   var table = $("#records").DataTable();
   table.clear();
+
+  //Update current zone
+  document.getElementById("current-zone").value = current_zone;
+  auth_data["current-zone"] = current_zone;
 
   $.ajax({
     type: "POST",
@@ -331,7 +346,7 @@ function update_table(auth_data) {
         r[i++] =
           '<div data-name="save-button" data-name="buttons" style="display: inline"><button data-original-title="Save changes" type="button" class="btn btn-secondary btn-sm btn-tooltip me-2" style="display: none"><i class="bi bi-check-lg"></i></button></div>';
         r[i++] =
-          '<div data-name="cancel-button" data-name="buttons" style="display: inline"><button data-original-title="Cancel changes" type="button" class="btn btn-secondary btn-sm btn-tooltip" style="display: none"><i class="bi bi-x-lg"></i></button></div>';
+          '<div data-name="cancel-button" data-name="buttons" style="display: inline"><button data-original-title="Cancel changes" type="button" class="btn btn-secondary btn-sm btn-tooltip me-2" style="display: none"><i class="bi bi-x-lg"></i></button></div>';
         r[i++] =
           '<div data-name="edit-button" data-name="buttons" style="display: inline"><button data-original-title="Edit record" type="button" class="btn btn-secondary btn-tooltip btn-sm me-2"><i class="bi bi-pencil-fill"></i></button></div>';
         r[i++] =
@@ -546,7 +561,9 @@ $(function () {
             record[val.name] = val.value;
           } else {
             record[val.name] =
-              val.value + (val.value.length == 0 ? "" : ".") + data.zone;
+              val.value +
+              (val.value.length == 0 ? "" : ".") +
+              data["current-zone"];
           }
         } else {
           record[val.name] = val.value;
@@ -570,7 +587,7 @@ $(function () {
             $("#rev-zone").val().length > 0
           ) {
             var data = JSON.parse(JSON.stringify(last_data));
-            data.zone = data["rev-zone"];
+            data["current-zone"] = data["rev-zone"];
             data.record.data = data.record.name + ".";
             data.record.type = "PTR";
 

@@ -94,9 +94,17 @@
             class="form-horizontal"
             role="form"
           >
+            <!-- Current zone -->
+            <input
+              hidden
+              class="form-control"
+              id="current-zone"
+              type="text"
+              name="current-zone"
+            />
             <div class="row">
               <div class="col-sm-7">
-                <h4>Main settings</h4>
+                <h4>Zone settings</h4>
                 <div class="row form-group mb-3 mt-3">
                   <label for="zone" class="col-sm-3 col-form-label"
                     >DNS zone</label
@@ -136,6 +144,19 @@
                   </div>
                 </div>
                 <div class="row form-group mb-3">
+                  <label for="rev-zone" class="col-sm-3 col-form-label"
+                    >Reverse Zone</label
+                  >
+                  <div class="col-sm-6">
+                    <input
+                      class="form-control"
+                      id="rev-zone"
+                      type="text"
+                      name="rev-zone"
+                    />
+                  </div>
+                </div>
+                <div class="row form-group mb-3">
                   <label for="key-name" class="col-sm-3 col-form-label"
                     >Key</label
                   >
@@ -148,86 +169,12 @@
                     />
                   </div>
                 </div>
-                <div class="form-group">
-                  <div class="hstack gap-3">
-                    <button
-                      id="reload_button"
-                      name="load"
-                      type="submit"
-                      class="btn btn-primary"
-                    >
-                      Load zone
-                    </button>
-                    <button
-                      name="reverse_load"
-                      type="submit"
-                      class="btn btn-primary"
-                    >
-                      Load reverse zone
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div class="col-sm-5">
-                <h4>Advanced settings</h4>
-                <div class="row form-group mb-3 mt-3">
-                  <label for="server" class="col-sm-5 col-form-label"
-                    >DNS Server</label
-                  >
-                  <div class="col-sm-7">
-                    <input
-                      class="form-control"
-                      id="server"
-                      type="text"
-                      name="server"
-                    />
-                  </div>
-                </div>
-                <div class="row form-group mb-3">
-                  <label for="proxy-path" class="col-sm-5 col-form-label"
-                    >Proxy URL</label
-                  >
-                  <div class="col-sm-7">
-                    <input
-                      class="form-control"
-                      id="proxy-path"
-                      type="text"
-                      value="dnsproxy.php"
-                    />
-                  </div>
-                </div>
-                <div class="row form-group mb-3">
-                  <label for="rr-filter" class="col-sm-5 col-form-label"
-                    >RR type filter</label
-                  >
-                  <div class="col-sm-7">
-                    <input
-                      class="form-control"
-                      id="rr-filter"
-                      type="text"
-                      value="SOA,RRSIG,NSEC,NSEC3"
-                    />
-                  </div>
-                </div>
-                <div class="row form-group mb-3">
-                  <label for="rev-zone" class="col-sm-5 col-form-label"
-                    >Reverse Zone</label
-                  >
-                  <div class="col-sm-7">
-                    <input
-                      class="form-control"
-                      id="rev-zone"
-                      type="text"
-                      name="rev-zone"
-                    />
-                  </div>
-                </div>
                 <div class="row form-group">
-                  <legend class="col-form-label col-sm-5 pt-0">
-                    Auto-add reverse ptr
+                  <legend class="col-form-label col-sm-3 pt-0">
+                    Auto-add reverse zone PTR
                   </legend>
 
-                  <div class="col-sm-7 form-check">
+                  <div class="col-sm-8 form-check">
                     <div class="form-check">
                       <input
                         class="form-check-input"
@@ -235,6 +182,71 @@
                         checked="true"
                         id="auto-rev-add"
                       />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-5">
+                <h4>Application settings</h4>
+                <div class="settings-col">
+                  <div>
+                    <div class="row form-group mb-3 mt-3">
+                      <label for="server" class="col-sm-5 col-form-label"
+                        >DNS Server</label
+                      >
+                      <div class="col-sm-7">
+                        <input
+                          class="form-control"
+                          id="server"
+                          type="text"
+                          name="server"
+                        />
+                      </div>
+                    </div>
+                    <div class="row form-group mb-3">
+                      <label for="proxy-path" class="col-sm-5 col-form-label"
+                        >Proxy URL</label
+                      >
+                      <div class="col-sm-7">
+                        <input
+                          class="form-control"
+                          id="proxy-path"
+                          type="text"
+                          value="dnsproxy.php"
+                        />
+                      </div>
+                    </div>
+                    <div class="row form-group mb-3">
+                      <label for="rr-filter" class="col-sm-5 col-form-label"
+                        >RR type filter</label
+                      >
+                      <div class="col-sm-7">
+                        <input
+                          class="form-control"
+                          id="rr-filter"
+                          type="text"
+                          value="SOA,RRSIG,NSEC,NSEC3"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="hstack gap-3 mb-3">
+                      <button
+                        id="reload_button"
+                        name="load"
+                        type="submit"
+                        class="btn btn-primary ms-auto"
+                      >
+                        Load zone
+                      </button>
+                      <button
+                        name="reverse_load"
+                        type="submit"
+                        class="btn btn-primary"
+                      >
+                        Load reverse zone
+                      </button>
                     </div>
                   </div>
                 </div>
